@@ -1,5 +1,5 @@
 {
-	"name": "hobo-bot",
+	"name": "hono-telegram-bot",
 	"type": "module",
 	"scripts": {
 		"dev": "wrangler dev",
@@ -7,7 +7,9 @@
 		"cf-typegen": "wrangler types --env-interface CloudflareBindings"
 	},
 	"dependencies": {
-		"hono": "^4.9.5"
+		"hono": "^4.9.5",
+		"typescript": "^5.9.2",
+		"typegram": "^5.2.0"
 	},
 	"devDependencies": {
 		"wrangler": "^4.33.1"
