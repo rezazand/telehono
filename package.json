@@ -1,5 +1,5 @@
 {
-	"name": "hono-telegram-bot",
+	"name": "telehono",
 	"type": "module",
 	"scripts": {
 		"dev": "wrangler dev",
