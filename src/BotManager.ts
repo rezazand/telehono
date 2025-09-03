@@ -6,7 +6,7 @@ type Handler = (ctx: Context) => void | Promise<void>;
 type Middleware = (ctx: Context, next: () => Promise<void>) => Promise<void>;
 
 export class BotManager {
-    private api: TelegramApi;
+    public api: TelegramApi;
     private middlewares: Middleware[] = [];
     private eventHandlers: { [type: string]: Handler } = {};
     private textHandlers: { [text: string]: Handler } = {};
