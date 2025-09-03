@@ -4,6 +4,9 @@
 declare namespace Cloudflare {
 	interface Env {
 		ASSETS: Fetcher;
+		TELEGRAM_BOT_TOKEN: string;
+        WEBHOOK_SECRET:string;
+        ADMIN: number;
 	}
 }
 interface CloudflareBindings extends Cloudflare.Env {}
