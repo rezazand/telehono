@@ -6,6 +6,7 @@ A lightweight, type-safe Telegram bot built on **Cloudflare Workers** using **Ho
 
 - **Serverless**: Built on Cloudflare Workers for global edge deployment
 - **Type-Safe**: Full TypeScript support with proper type definitions
+- **Database**: Integrated with Cloudflare D1 using Prisma ORM
 - **Modular Architecture**: Clean separation of concerns with organized folder structure
 - **Webhook Support**: Secure webhook handling with secret token validation
 - **Admin Controls**: Built-in admin-only access control with middleware
@@ -20,6 +21,7 @@ A lightweight, type-safe Telegram bot built on **Cloudflare Workers** using **Ho
 
 - **`Bot`**: The main bot class handling update processing and handler execution
 - **`Context`**: Enhanced Telegram update context with convenient helper methods
+- **`Prisma`**: ORM for interacting with the Cloudflare D1 database
 - **`TelegramApi`**: Complete Telegram Bot API wrapper with comprehensive type definitions
 - **`Handler`**: Type-safe handler definitions for commands, text, and events
 - **Middleware**: Error handling and admin access control middleware
@@ -37,27 +39,24 @@ src/
 │   ├── config.ts           # Handler configuration and registration
 │   ├── types.ts            # Type definitions for handlers
 │   ├── handlers/           # Modular command and event handlers
-│   │   ├── start.ts        # /start command handler
-│   │   ├── help.ts         # /help command handler
-│   │   ├── echo.ts         # /echo command with validation
-│   │   ├── hi.ts           # "hi" text handler
-│   │   ├── sticker.ts      # Sticker event handler
-│   │   ├── info.ts         # Admin-only info command
-│   │   └── stats.ts        # Admin-only stats command
 │   ├── middleware/         # Middleware for cross-cutting concerns
-│   │   ├── admin.ts        # Admin access control
-│   │   └── error.ts        # Error handling and logging
 │   ├── telegram/           # Telegram API integration
-│   │   ├── api.ts          # Complete API wrapper
-│   │   └── types.ts        # Telegram-specific types
 │   └── utils/              # Utility functions
-│       └── validation.ts   # Input validation helpers
+├── generated/
+│   └── prisma/             # Prisma client
+prisma/
+├── schema.prisma            # Prisma schema file
+migrations/
+└── ...                      # Database migration files
 ```
 
 ### Dependencies
 
 - **`hono`**: Fast, lightweight web framework for Cloudflare Workers
 - **`typegram`**: Complete TypeScript type definitions for Telegram Bot API
+- **`@prisma/client`**: Prisma client for database access
+- **`@prisma/adapter-d1`**: Prisma adapter for Cloudflare D1
+- **`prisma`**: Prisma CLI for migrations and client generation (dev dependency)
 
 > **Note**: This project uses `typegram` directly instead of `telegraf` for optimal bundle size, as we only need the type definitions without the full Telegraf library functionality.
 
@@ -80,12 +79,51 @@ Telegram → Webhook → Cloudflare Worker → Bot → Handler Execution → Res
 - Node.js 18+
 - Cloudflare account
 - Telegram Bot Token (from [@BotFather](https://t.me/botfather))
+- `wrangler` CLI installed globally or locally
 
 ### Installation
 
 ```bash
 npm install
 ```
+
+After installing dependencies, generate the Prisma client:
+
+```bash
+npx prisma generate
+```
+
+### Database Setup
+
+This project uses Cloudflare D1 as its database.
+
+1.  **Create a D1 Database**:
+    ```bash
+    wrangler d1 create <DATABASE_NAME>
+    ```
+2.  **Configure `wrangler.jsonc`**:
+    Add the following to your `wrangler.jsonc` file, replacing `<DATABASE_NAME>` and `<DATABASE_ID>` with your database details from the previous step.
+
+    ```json
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "<DATABASE_NAME>",
+        "database_id": "<DATABASE_ID>"
+      }
+    ]
+    ```
+
+3.  **Run Migrations**:
+    Apply the database schema to your D1 database.
+
+    ```bash
+    npx prisma migrate dev
+    ```
+    or for production
+    ```bash
+    wrangler d1 migrations apply <DATABASE_NAME>
+    ```
 
 ### Development
 
@@ -111,18 +149,50 @@ npm run cf-typegen
 
 ### Environment Variables
 
-Set these in your Cloudflare Worker dashboard or via `wrangler.toml`:
+Set these in your Cloudflare Worker dashboard or via a `.dev.vars` file for local development:
 
 - `TELEGRAM_BOT_TOKEN`: Your Telegram bot token from BotFather
 - `ADMIN`: Admin chat ID (only this user can interact with the bot)
 - `WEBHOOK_SECRET`: Secret token for webhook validation
+
+**Note**: The `DATABASE_URL` is not required when using Cloudflare D1 with bindings in `wrangler.jsonc`. The Prisma adapter for D1 will automatically use the binding.
 
 ### Webhook Setup
 
 1. **Register webhook**: Visit `https://your-worker.your-subdomain.workers.dev/registerWebhook`
 2. **Unregister webhook**: Visit `https://your-worker.your-subdomain.workers.dev/unregisterWebhook`
 
-## 📝 Usage Examples
+#### Database
+
+This project uses Prisma to manage the database schema and migrations for Cloudflare D1.
+
+### Schema
+
+The Prisma schema is defined in `prisma/schema.prisma`. You can modify this file to update your database schema.
+
+### Migrations
+
+To create a new migration after changing the schema, run:
+
+```bash
+npx prisma migrate dev --name <MIGRATION_NAME>
+```
+
+This will create a new SQL migration file in the `migrations` directory.
+
+To apply migrations to your local development database (backed by a local file):
+
+```bash
+npx prisma migrate dev
+```
+
+To apply migrations to your production D1 database:
+
+```bash
+wrangler d1 migrations apply <DATABASE_NAME>
+```
+
+ 📝 Usage Examples
 
 ### Basic Bot Setup
 
