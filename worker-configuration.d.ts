@@ -7,6 +7,7 @@ declare namespace Cloudflare {
 		TELEGRAM_BOT_TOKEN: string;
         WEBHOOK_SECRET:string;
         ADMIN: number;
+        DB;
 	}
 }
 interface CloudflareBindings extends Cloudflare.Env {}

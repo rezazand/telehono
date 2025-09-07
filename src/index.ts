@@ -4,6 +4,8 @@ import type { Update } from "typegram";
 import { handlers, adminHandlers } from "./bot/config";
 import { Context } from "./bot/context";
 import { adminMiddleware } from "./bot/middleware/admin";
+import { PrismaClient} from "./generated/prisma"
+import { PrismaD1 } from "@prisma/adapter-d1";
 
 const app = new Hono<{ Bindings: CloudflareBindings }>();
 
@@ -44,6 +46,12 @@ app.post("/webhook", async (c) => {
 
 
 app.get("/test", async (c) => {
+  const adapter = new PrismaD1(c.env.DB);
+  const prisma = new PrismaClient({ adapter });
+
+  const users = await prisma.user.findFirst();
+  const result = JSON.stringify(users);
+  return new Response(result);
   await bot.api.sendMessage(Number(c.env.ADMIN), "Test endpoint");
   return c.text('ok');
 });
